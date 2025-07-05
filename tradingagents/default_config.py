@@ -17,3 +17,5 @@ DEFAULT_CONFIG = {
     # Tool settings
     "online_tools": True,
 }
+
+QWEN_API = "sk-773626ea3a5e4d24b826de51bcc1dcef"

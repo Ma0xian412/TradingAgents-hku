@@ -41,7 +41,7 @@ class GraphSetup:
         self.conditional_logic = conditional_logic
 
     def setup_graph(
-        self, selected_analysts=["market", "social", "news", "fundamentals"]
+        self, selected_analysts=["market", "news"]
     ):
         """Set up and compile the agent workflow graph.
 
@@ -67,12 +67,12 @@ class GraphSetup:
             delete_nodes["market"] = create_msg_delete()
             tool_nodes["market"] = self.tool_nodes["market"]
 
-        if "social" in selected_analysts:
-            analyst_nodes["social"] = create_social_media_analyst(
-                self.quick_thinking_llm, self.toolkit
-            )
-            delete_nodes["social"] = create_msg_delete()
-            tool_nodes["social"] = self.tool_nodes["social"]
+        # if "social" in selected_analysts:
+        #     analyst_nodes["social"] = create_social_media_analyst(
+        #         self.quick_thinking_llm, self.toolkit
+        #     )
+        #     delete_nodes["social"] = create_msg_delete()
+        #     tool_nodes["social"] = self.tool_nodes["social"]
 
         if "news" in selected_analysts:
             analyst_nodes["news"] = create_news_analyst(
@@ -81,12 +81,12 @@ class GraphSetup:
             delete_nodes["news"] = create_msg_delete()
             tool_nodes["news"] = self.tool_nodes["news"]
 
-        if "fundamentals" in selected_analysts:
-            analyst_nodes["fundamentals"] = create_fundamentals_analyst(
-                self.quick_thinking_llm, self.toolkit
-            )
-            delete_nodes["fundamentals"] = create_msg_delete()
-            tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]
+        # if "fundamentals" in selected_analysts:
+        #     analyst_nodes["fundamentals"] = create_fundamentals_analyst(
+        #         self.quick_thinking_llm, self.toolkit
+        #     )
+        #     delete_nodes["fundamentals"] = create_msg_delete()
+        #     tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]
 
         # Create researcher and manager nodes
         bull_researcher_node = create_bull_researcher(

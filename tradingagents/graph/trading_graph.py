@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import ToolNode
 
 from tradingagents.agents import *
-from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.default_config import *
 from tradingagents.agents.utils.memory import FinancialSituationMemory
 from tradingagents.agents.utils.agent_states import (
     AgentState,
@@ -55,10 +55,41 @@ class TradingAgentsGraph:
         )
 
         # Initialize LLMs
-        self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"])
-        self.quick_thinking_llm = ChatOpenAI(
-            model=self.config["quick_think_llm"], temperature=0.1
+        # self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"])
+        # self.quick_thinking_llm = ChatOpenAI(
+        #     model=self.config["quick_think_llm"], temperature=0.1
+        # )
+
+        model_kwargs_deep = {
+            "extra_body": {
+                "enable_thinking": True
+            }
+        }
+
+        model_kwargs_quick = {
+            "extra_body": {
+                "enable_thinking": False
+            }
+        }
+
+        # Support for qwen
+        self.deep_thinking_llm = ChatOpenAI(
+            model="qwen",
+            api_key = QWEN_API,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            model_kwargs=model_kwargs_deep,
+            streaming=True,                # 开启流式输出
         )
+
+        self.quick_thinking_llm = ChatOpenAI(
+            model="qwen",
+            temperature=0.1,
+            api_key=QWEN_API,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            model_kwargs=model_kwargs_quick,
+            streaming=True,                # 开启流式输出
+        )
+
         self.toolkit = Toolkit(config=self.config)
 
         # Initialize memories
@@ -100,47 +131,50 @@ class TradingAgentsGraph:
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources."""
+        """只留market和news两个节点，禁用所有online tools"""
         return {
             "market": ToolNode(
                 [
-                    # online tools
-                    self.toolkit.get_YFin_data_online,
-                    self.toolkit.get_stockstats_indicators_report_online,
+                    # online tools 禁用所有online tools
+                    # self.toolkit.get_YFin_data_online,
+                    # self.toolkit.get_stockstats_indicators_report_online,
+
                     # offline tools
                     self.toolkit.get_YFin_data,
                     self.toolkit.get_stockstats_indicators_report,
                 ]
             ),
-            "social": ToolNode(
-                [
-                    # online tools
-                    self.toolkit.get_stock_news_openai,
-                    # offline tools
-                    self.toolkit.get_reddit_stock_info,
-                ]
-            ),
+            # "social": ToolNode(
+            #     [
+            #         # online tools 禁用所有online tools
+            #         # self.toolkit.get_stock_news_openai,
+            #         # offline tools
+            #         self.toolkit.get_reddit_stock_info,
+            #     ]
+            # ),
             "news": ToolNode(
                 [
-                    # online tools
-                    self.toolkit.get_global_news_openai,
-                    self.toolkit.get_google_news,
+                    # online tools 禁用所有online tools
+                    # self.toolkit.get_global_news_openai,
+                    # self.toolkit.get_google_news,
+
                     # offline tools
                     self.toolkit.get_finnhub_news,
                     self.toolkit.get_reddit_news,
                 ]
-            ),
-            "fundamentals": ToolNode(
-                [
-                    # online tools
-                    self.toolkit.get_fundamentals_openai,
-                    # offline tools
-                    self.toolkit.get_finnhub_company_insider_sentiment,
-                    self.toolkit.get_finnhub_company_insider_transactions,
-                    self.toolkit.get_simfin_balance_sheet,
-                    self.toolkit.get_simfin_cashflow,
-                    self.toolkit.get_simfin_income_stmt,
-                ]
-            ),
+            )
+            # "fundamentals": ToolNode(
+            #     [
+            #         # online tools
+            #         self.toolkit.get_fundamentals_openai,
+            #         # offline tools
+            #         self.toolkit.get_finnhub_company_insider_sentiment,
+            #         self.toolkit.get_finnhub_company_insider_transactions,
+            #         self.toolkit.get_simfin_balance_sheet,
+            #         self.toolkit.get_simfin_cashflow,
+            #         self.toolkit.get_simfin_income_stmt,
+            #     ]
+            # ),
         }
 
     def propagate(self, company_name, trade_date):
